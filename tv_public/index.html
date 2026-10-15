@@ -13,10 +13,8 @@
     #tabela-pojemnik { display: none; width: 100%; height: 100vh; overflow: auto; padding: 20px; box-sizing: border-box; }
     table { border-collapse: collapse; margin: auto; }
     
-    /* Margines góra/dół 0.4px, lewy/prawy 3px. Linie o połowę cieńsze (1px solid black) */
+    /* Zoptymalizowany wygląd (z poprzedniego kroku) */
     td, th { padding: 0.4px 3px; text-align: center; border: 1px solid black; font-size: 16px; font-weight: bold; }
-    
-    /* Font nagłówka */
     th { background-color: #e0e0e0; font-size: 18px; }
   </style>
 </head>
@@ -34,10 +32,10 @@
     <table id="tabliczka"></table>
   </div>
 
-  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    // Dodano import funkcji deleteDoc
+    import { getFirestore, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAhJnzHIkF2twc8pXzb7AWuczldWsGIPIU",
@@ -66,6 +64,9 @@
           rysujTabele(docSnap.data());
           document.getElementById('ekran-pinu').style.display = 'none';
           document.getElementById('tabela-pojemnik').style.display = 'block';
+          
+          // KASOWANIE REKORDU: Zwalniamy PIN natychmiast po narysowaniu tabeli
+          await deleteDoc(docRef);
         } else {
           bladDiv.innerText = "Nie znaleziono tabliczki dla tego PIN-u!";
         }
@@ -94,20 +95,7 @@
             else if (x % 2 === 0 || y % 2 === 0) bg = '#cfd8dc';
           } else if (styl === 'tecza') {
             let maxVal = Math.max(x, y);
-            
-            const kolory = [
-              "#ffcdd2", // 0, 10, 20...
-              "#e1bee7", // 1, 11, 21... (Fioletowy)
-              "#c5cae9", // 2, 12, 22...
-              "#bbdefb", // 3, 13, 23...
-              "#b2ebf2", // 4, 14, 24...
-              "#b2dfdb", // 5, 15, 25...
-              "#c8e6c9", // 6, 16, 26...
-              "#f0f4c3", // 7, 17, 27...
-              "#fff9c4", // 8, 18, 28...
-              "#ffe0b2"  // 9, 19, 29...
-            ];
-            
+            const kolory = ["#ffcdd2", "#e1bee7", "#c5cae9", "#bbdefb", "#b2ebf2", "#b2dfdb", "#c8e6c9", "#f0f4c3", "#fff9c4", "#ffe0b2"];
             bg = kolory[maxVal % 10];
           }
 
