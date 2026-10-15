@@ -12,10 +12,12 @@
     #blad { color: red; margin-top: 20px; font-size: 18px; }
     #tabela-pojemnik { display: none; width: 100%; height: 100vh; overflow: auto; padding: 20px; box-sizing: border-box; }
     table { border-collapse: collapse; margin: auto; }
-    /* Zmiana wymiarów: usunięto sztywne 80px, zmniejszono font o 50% (z 28px na 14px) */
-    td, th { padding: 8px 12px; text-align: center; border: 2px solid black; font-size: 14px; font-weight: bold; }
-    /* Zmniejszono font nagłówka o 50% (z 32px na 16px) */
-    th { background-color: #e0e0e0; font-size: 16px; }
+    
+    /* Marginesy (padding) zmniejszone ok. trzykrotnie, czcionka (font-size) zwiększona o 20% (z 14px na 17px) */
+    td, th { padding: 3px 4px; text-align: center; border: 2px solid black; font-size: 17px; font-weight: bold; }
+    
+    /* Font nagłówka powiększony o 20% (z 16px na 19px) */
+    th { background-color: #e0e0e0; font-size: 19px; }
   </style>
 </head>
 <body>
@@ -77,8 +79,6 @@
       const tabela = document.getElementById('tabliczka');
       let html = '';
 
-      const kolory = ["#fff", "#ffcdd2", "#ffe0b2", "#fff9c4", "#c8e6c9", "#bbdefb", "#c5cae9", "#e1bee7", "#f8bbd0", "#b2dfdb", "#b2ebf2"];
-
       for (let wiersz = 0; wiersz <= pionMax - pionMin + 1; wiersz++) {
         html += '<tr>';
         for (let kolumna = 0; kolumna <= poziomMax - poziomMin + 1; kolumna++) {
@@ -94,7 +94,23 @@
             else if (x % 2 === 0 || y % 2 === 0) bg = '#cfd8dc';
           } else if (styl === 'tecza') {
             let maxVal = Math.max(x, y);
-            bg = kolory[maxVal % kolory.length];
+            
+            // Nowa, 10-kolorowa paleta tęczy
+            const kolory = [
+              "#ffcdd2", // 0 (oraz 10, 20...)
+              "#e1bee7", // 1 (fioletowy - dla 1, 11, 21...)
+              "#c5cae9", // 2 (oraz 12, 22...)
+              "#bbdefb", // 3 (oraz 13, 23...)
+              "#b2ebf2", // 4
+              "#b2dfdb", // 5
+              "#c8e6c9", // 6
+              "#fff9c4", // 7
+              "#ffe0b2", // 8
+              "#ffab91"  // 9 (oraz 19, 29...)
+            ];
+            
+            // maxVal % 10 sprawia, że jedynka, jedenastka, dwudziestka jedynka itd. z automatu mają ten sam indeks kolorystyczny (nr 1).
+            bg = kolory[maxVal % 10];
           }
 
           let tag = (wiersz === 0 || kolumna === 0) ? 'th' : 'td';
