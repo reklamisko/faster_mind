@@ -13,11 +13,11 @@
     #tabela-pojemnik { display: none; width: 100%; height: 100vh; overflow: auto; padding: 20px; box-sizing: border-box; }
     table { border-collapse: collapse; margin: auto; }
     
-    /* Marginesy wewnętrzne (padding) zmniejszone trzykrotnie, czcionka zwiększona o 20% (na 20px) */
-    td, th { padding: 1px 1px; text-align: center; border: 2px solid black; font-size: 20px; font-weight: bold; }
+    /* Margines góra/dół 0.5px, lewy/prawy 5px. Czcionka zmniejszona o 20% (16px) */
+    td, th { padding: 0.5px 5px; text-align: center; border: 2px solid black; font-size: 16px; font-weight: bold; }
     
-    /* Font nagłówka powiększony o 20% (na 23px) */
-    th { background-color: #e0e0e0; font-size: 23px; }
+    /* Font nagłówka zmniejszony odpowiednio do 18px */
+    th { background-color: #e0e0e0; font-size: 18px; }
   </style>
 </head>
 <body>
@@ -95,21 +95,19 @@
           } else if (styl === 'tecza') {
             let maxVal = Math.max(x, y);
             
-            // Nowa, równomierna 10-kolorowa paleta tęczy
             const kolory = [
-              "#ffcdd2", // 0, 10, 20... (Czerwony/Różowy)
-              "#e1bee7", // 1, 11, 21... (Fioletowy - zgodnie z życzeniem)
-              "#c5cae9", // 2, 12, 22... (Indygo)
-              "#bbdefb", // 3, 13, 23... (Jasnoniebieski)
-              "#b2ebf2", // 4, 14, 24... (Cyjan)
-              "#b2dfdb", // 5, 15, 25... (Morski)
-              "#c8e6c9", // 6, 16, 26... (Zielony)
-              "#f0f4c3", // 7, 17, 27... (Limonkowy)
-              "#fff9c4", // 8, 18, 28... (Żółty)
-              "#ffe0b2"  // 9, 19, 29... (Pomarańczowy)
+              "#ffcdd2", // 0, 10, 20...
+              "#e1bee7", // 1, 11, 21... (Fioletowy)
+              "#c5cae9", // 2, 12, 22...
+              "#bbdefb", // 3, 13, 23...
+              "#b2ebf2", // 4, 14, 24...
+              "#b2dfdb", // 5, 15, 25...
+              "#c8e6c9", // 6, 16, 26...
+              "#f0f4c3", // 7, 17, 27...
+              "#fff9c4", // 8, 18, 28...
+              "#ffe0b2"  // 9, 19, 29...
             ];
             
-            // maxVal % 10 sprawia, że powtarzają się cyklicznie przypisane kolory dla konkretnej końcówki cyfry.
             bg = kolory[maxVal % 10];
           }
 
