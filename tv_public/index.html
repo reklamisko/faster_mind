@@ -5,6 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Odbiornik TV - Faster Mind</title>
 
+  <script>
+    window.MathJax = {
+      asciimath2jax: {
+        delimiters: [['`','`']]
+      }
+    };
+    (function() {
+      var s = document.createElement('script');
+      s.type = 'text/javascript';
+      var host = ['cdnjs', 'cloudflare', 'com'].join('.');
+      s.src = 'https://' + host + '/ajax/libs/mathjax/2.7.7/MathJax.js?config=AM_HTMLorMML';
+      s.async = true;
+      document.head.appendChild(s);
+    })();
+  </script>
+
   <style>
     body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #fff; }
     #ekran-pinu { text-align: center; }
@@ -13,9 +29,9 @@
     #blad { color: red; margin-top: 20px; font-size: 18px; }
     #tabela-pojemnik { display: none; width: 100%; height: 100vh; overflow: auto; padding: 20px; box-sizing: border-box; text-align: center; }
     table { border-collapse: collapse; margin: auto; }
-    td, th { padding: 4px 10px; text-align: center; border: 1px solid black; font-size: 20px; font-weight: bold; }
-    th { background-color: #e0e0e0; font-size: 22px; }
-    .tytul-tabeli { font-size: 28px; font-weight: bold; margin-bottom: 20px; color: #333; }
+    td, th { padding: 8px 16px; text-align: center; border: 1px solid black; font-size: 22px; font-weight: bold; }
+    th { background-color: #e0e0e0; font-size: 24px; }
+    .tytul-tabeli { font-size: 32px; font-weight: bold; margin-bottom: 20px; color: #333; }
   </style>
 </head>
 <body>
@@ -32,22 +48,6 @@
     <div id="tytul-tabeli" class="tytul-tabeli"></div>
     <table id="tabliczka"></table>
   </div>
-
-  <script>
-    // Konfiguracja i dynamiczne ładowanie MathJax
-    window.MathJax = {
-      asciimath2jax: {
-        delimiters: [['`','`']]
-      }
-    };
-    (function() {
-      var script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = 'https://' + '[suspicious link removed]';
-      script.async = true;
-      document.head.appendChild(script);
-    })();
-  </script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -77,9 +77,9 @@
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-  const dane = docSnap.data();
-  const teraz = Date.now();
-  const czasUtworzenia = dane.utworzono || teraz;
+          const dane = docSnap['data']();
+          const teraz = Date['now']();
+          const czasUtworzenia = dane.utworzono || teraz;
 
           if (teraz - czasUtworzenia > 5 * 60 * 1000) {
             await deleteDoc(docRef);
@@ -133,7 +133,7 @@
         } else {
           const parts = pyt.split(/[\s:-]+/);
           if (parts.length >= 2) {
-            wiersz = parts.trim();
+            wiersz = parts[0].trim();
             kolumna = parts.slice(1).join(' ').trim();
           }
         }
@@ -151,6 +151,14 @@
         return { wiersze: wierszeSet, kolumny: kolumnySet, mapa };
       }
       return null;
+    }
+
+    function przerysujMathJax() {
+      if (window.MathJax && window.MathJax.Hub) {
+        window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub, document.getElementById('tabliczka')]);
+      } else {
+        setTimeout(przerysujMathJax, 200);
+      }
     }
 
     function rysujTabele(dane) {
@@ -217,10 +225,7 @@
       }
 
       tabela.innerHTML = html;
-
-      if (window.MathJax && window.MathJax.Hub) {
-        window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub, tabela]);
-      }
+      przerysujMathJax();
     }
   </script>
 </body>
