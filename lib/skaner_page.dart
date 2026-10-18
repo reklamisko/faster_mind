@@ -46,16 +46,19 @@ class _SkanerPageState extends State<SkanerPage> {
         apiKey: geminiApiKey, // Używa klucza wpisanego wcześniej[cite: 7]
       );
 
-      final prompt = TextPart(
-          'Przeanalizuj to zdjęcie. Znajdź na nim tabelę z danymi, wzorami, pojęciami lub wartościami. '
-          'Jeśli to prosta tabela dwukolumnowa, potraktuj lewą stronę jako pytanie, a prawą jako odpowiedź. '
-          'Jeśli tabela ma formę siatki z wieloma kolumnami i wierszami (np. funkcje trygonometryczne po lewej i kąty na górze), '
-          'krzyżuj dane: połącz nagłówek wiersza z nagłówkiem kolumny, by stworzyć logiczne pytanie (np. "sin 30°"), '
-          'a zawartość komórki na ich przecięciu potraktuj jako odpowiedź (np. "1/2"). '
-          'Twój wynik musi być JEDNĄ płaską listą. Zwróć go wyłącznie jako czysty kod JSON w formacie tablicy obiektów: '
-          '[{"pytanie": "...", "odpowiedz": "..."}]. '
-          'Zignoruj całkowicie tło, plamy i tekst poza tabelą. Nie dodawaj znaczników markdown (np. ```json) ani żadnego tekstu powitalnego.');
-
+      ffinal prompt = TextPart(
+        'Przeanalizuj to zdjęcie. Znajdź na nim tabelę z danymi, wzorami, pojęciami lub wartościami.\n'
+        '1. Jeśli to tabela dwukolumnowa: lewa strona to "pytanie", prawa to "odpowiedz".\n'
+        '2. Jeśli to macierz/siatka wielokolumnowa: w polu "pytanie" POŁĄCZ nagłówek wiersza i nagłówek kolumny, ROZDZIELAJĄC JE DOKŁADNIE SYMBOLEM " | " (pionowa kreska ze spacjami), np. "sin α | 30°", "ctg α | π/4".\n'
+        '3. ZASADY DLA FORMUŁ MATEMATYCZNYCH:\n'
+        '   - ZAWSZE BEZWZGLĘDNIE ujmuj CAŁY licznik i CAŁY mianownik w nawiasy wokół ukośnika "/", np. "(1) / (tg α)", "(a * b) / (c)".\n'
+        '   - Nie rozdzielaj spacjami samych nazw funkcji (pisz poprawnie: "tg α", "ctg α", "sin α", "cos α").\n'
+        '   - Całe wyrażenie pod pierwiastkiem zapisuj w nawiasie po sqrt, np. "sqrt(1 + tg² α)".\n'
+        '   - Przykłady poprawnego zapisu odpowiedzi: "(1) / (tg α)", "(±tg α) / (sqrt(1 + tg² α))".\n'
+        '4. Zwróć wynik WYŁĄCZNIE jako czysty kod JSON w formacie tablicy obiektów: [{"pytanie": "...", "odpowiedz": "..."}].\n'
+        'Zignoruj tło i tekst poza tabelą. Nie dodawaj znaczników markdown (```json) ani tekstu wstępnego.'
+      );
+      
       final imagePart = DataPart('image/jpeg', bytes);
 
       final response = await model.generateContent([

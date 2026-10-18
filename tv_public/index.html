@@ -125,16 +125,22 @@
         if (!pyt) continue;
 
         let wiersz = '', kolumna = '';
-        const match = pyt.match(/^([a-zA-Z]+|\\[a-zA-Z]+)\s+(.+)\$/);
 
-        if (match) {
-          wiersz = match[1].trim();
-          kolumna = match[2].trim();
+        if (pyt.includes('|')) {
+          const parts = pyt.split('|');
+          wiersz = parts[0].trim();
+          kolumna = parts.slice(1).join('|').trim();
         } else {
-          const parts = pyt.split(/[\s:-]+/);
-          if (parts.length >= 2) {
-            wiersz = parts[0].trim();
-            kolumna = parts.slice(1).join(' ').trim();
+          const match = pyt.match(/^([a-zA-Z]+|\\[a-zA-Z]+)\s+(.+)\$/);
+          if (match) {
+            wiersz = match[1].trim();
+            kolumna = match[2].trim();
+          } else {
+            const parts = pyt.split(/[\s:-]+/);
+            if (parts.length >= 2) {
+              wiersz = parts[0].trim();
+              kolumna = parts.slice(1).join(' ').trim();
+            }
           }
         }
 
