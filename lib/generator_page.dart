@@ -56,7 +56,7 @@ class _GeneratorPageState extends State<GeneratorPage> {
           'pionMin': piMin,
           'pionMax': piMax,
           'styl': _wybranyStyl,
-          'utworzono': FieldValue.serverTimestamp(),
+          'utworzono': DateTime.now().millisecondsSinceEpoch,
         });
 
         if (!mounted) return;

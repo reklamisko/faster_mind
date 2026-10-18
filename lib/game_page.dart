@@ -74,15 +74,7 @@ class _GamePageState extends State<GamePage> {
 
         if (userId != null) {
           // 1. Zapis pełnej historii (do starych logów)
-          await FirebaseFirestore.instance.collection('wyniki').add({
-            'uid': userId,
-            'zakres': appState.zakres,
-            'iloscPytan': appState.liczbaPytan,
-            'czasSekundy': calkowityCzas,
-            'dataGry': DateTime.now(),
-            'pytania': historiaPytan,
-            'czasyReakcji': listaCzasow,
-          });
+          
 
           // 2. Aktualizacja najlepszego wyniku (Twój poprzedni kod)
           String kategoria = '${appState.zakres}_${appState.liczbaPytan}';

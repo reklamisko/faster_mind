@@ -30,7 +30,7 @@ class _TwojeTabliczkiPageState extends State<TwojeTabliczkiPage> {
         'typ': 'skan',
         'nazwa': _wybranaTabelaDane!['nazwa'] ?? 'Tabela',
         'pary': _wybranaTabelaDane!['pary'] ?? [],
-        'utworzono': FieldValue.serverTimestamp(),
+        'utworzono': DateTime.now().millisecondsSinceEpoch,
       });
 
       if (!mounted) return;

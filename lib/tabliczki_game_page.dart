@@ -171,15 +171,7 @@ class _TabliczkiGamePageState extends State<TabliczkiGamePage> {
 
         if (userId != null) {
           // 1. Zapis pełnej historii
-          await FirebaseFirestore.instance.collection('wyniki').add({
-            'uid': userId,
-            'kategoria': 'AI_${widget.wybraneTabele.join('_')}',
-            'iloscPytan': widget.iloscPytan,
-            'czasSekundy': calkowityCzas,
-            'dataGry': DateTime.now(),
-            'pytania': historiaPytan,
-            'czasyReakcji': listaCzasow,
-          });
+          
 
           // 2. Aktualizacja najlepszego wyniku
           String kategoria = 'AI_${widget.wybraneTabele.join('_')}_${widget.iloscPytan}';

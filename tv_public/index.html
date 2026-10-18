@@ -5,7 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Odbiornik TV - Faster Mind</title>
 
-  <!-- MathJax z obsługą AsciiMath do ułamków i wzorów -->
+  <!-- Konfiguracja MathJax dla ułamków AsciiMath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      asciimath2jax: {
+        delimiters: [['`','`']]
+      }
+    });
+  </script>
   <script type="text/javascript" async
     src="[suspicious link removed]">
   </script>
@@ -18,9 +25,9 @@
     #blad { color: red; margin-top: 20px; font-size: 18px; }
     #tabela-pojemnik { display: none; width: 100%; height: 100vh; overflow: auto; padding: 20px; box-sizing: border-box; text-align: center; }
     table { border-collapse: collapse; margin: auto; }
-    td, th { padding: 8px 16px; text-align: center; border: 1px solid black; font-size: 22px; font-weight: bold; }
-    th { background-color: #e0e0e0; font-size: 24px; }
-    .tytul-tabeli { font-size: 32px; font-weight: bold; margin-bottom: 20px; color: #333; }
+    td, th { padding: 4px 10px; text-align: center; border: 1px solid black; font-size: 20px; font-weight: bold; }
+    th { background-color: #e0e0e0; font-size: 22px; }
+    .tytul-tabeli { font-size: 28px; font-weight: bold; margin-bottom: 20px; color: #333; }
   </style>
 </head>
 <body>
@@ -66,10 +73,22 @@
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          rysujTabele(docSnap.data());
+  const dane = docSnap.data();
+  const teraz = Date.now();
+  const czasUtworzenia = dane.utworzono || teraz;
+          
+          // Usuń kod jeśli minęło więcej niż 5 minut (300 000 ms)
+          if (teraz - czasUtworzenia > 5 * 60 * 1000) {
+            await deleteDoc(docRef);
+            bladDiv.innerText = "Kod PIN wygasł (ważny 5 minut). Wygeneruj nowy na telefonie!";
+            return;
+          }
+
+          rysujTabele(dane);
           document.getElementById('ekran-pinu').style.display = 'none';
           document.getElementById('tabela-pojemnik').style.display = 'block';
           
+          // Usuń kod z bazy natychmiast po wyświetleniu
           await deleteDoc(docRef);
         } else {
           bladDiv.innerText = "Nie znaleziono tabliczki dla tego PIN-u!";
@@ -83,11 +102,10 @@
       if (!tekst) return '';
       let str = String(tekst).trim();
 
-      // Zamiana pierwiastków na format AsciiMath
+      // Zamiana znaków pierwiastka √ na format sqrt(...)
       str = str.replace(/√(\d+|\w+)/g, 'sqrt($1)');
       str = str.replace(/√\\(([^)]+)\\)/g, 'sqrt($1)');
 
-      // Oflagowanie do renderowania w AsciiMath
       if (!str.startsWith('`')) {
         str = '`' + str + '`';
       }
@@ -114,7 +132,7 @@
         } else {
           const parts = pyt.split(/[\s:-]+/);
           if (parts.length >= 2) {
-            wiersz = parts[0].trim();
+            wiersz = parts.trim();
             kolumna = parts.slice(1).join(' ').trim();
           }
         }
@@ -199,7 +217,7 @@
 
       tabela.innerHTML = html;
 
-      // Wywołanie renderowania MathJax po wklejeniu tabeli
+      // Wywołanie renderowania wzorów MathJax
       if (window.MathJax && window.MathJax.Hub) {
         window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub, tabela]);
       }
