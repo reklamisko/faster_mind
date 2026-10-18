@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Odbiornik TV - Faster Mind</title>
-  
-  <!-- MathJax z obsługa AsciiMath do ułamków i wzorów -->
+
+  <!-- MathJax z obsługą AsciiMath do ułamków i wzorów -->
   <script type="text/javascript" async
     src="[suspicious link removed]">
   </script>
@@ -18,9 +18,9 @@
     #blad { color: red; margin-top: 20px; font-size: 18px; }
     #tabela-pojemnik { display: none; width: 100%; height: 100vh; overflow: auto; padding: 20px; box-sizing: border-box; text-align: center; }
     table { border-collapse: collapse; margin: auto; }
-    td, th { padding: 4px 10px; text-align: center; border: 1px solid black; font-size: 18px; font-weight: bold; }
-    th { background-color: #e0e0e0; font-size: 20px; }
-    .tytul-tabeli { font-size: 28px; font-weight: bold; margin-bottom: 20px; color: #333; }
+    td, th { padding: 8px 16px; text-align: center; border: 1px solid black; font-size: 22px; font-weight: bold; }
+    th { background-color: #e0e0e0; font-size: 24px; }
+    .tytul-tabeli { font-size: 32px; font-weight: bold; margin-bottom: 20px; color: #333; }
   </style>
 </head>
 <body>
@@ -81,12 +81,57 @@
 
     function formatujMatematyke(tekst) {
       if (!tekst) return '';
-      tekst = String(tekst).trim();
-      if (tekst.includes('`')) return tekst;
-      if (tekst.includes('/') || tekst.includes('^') || tekst.includes('sqrt')) {
-        return '`' + tekst + '`';
+      let str = String(tekst).trim();
+
+      // Zamiana pierwiastków na format AsciiMath
+      str = str.replace(/√(\d+|\w+)/g, 'sqrt($1)');
+      str = str.replace(/√\\(([^)]+)\\)/g, 'sqrt($1)');
+
+      // Oflagowanie do renderowania w AsciiMath
+      if (!str.startsWith('`')) {
+        str = '`' + str + '`';
       }
-      return tekst;
+      return str;
+    }
+
+    function budujMacierz(pary) {
+      if (!pary || pary.length < 3) return null;
+
+      const mapa = {};
+      const wierszeSet = [];
+      const kolumnySet = [];
+
+      for (const p of pary) {
+        const pyt = (p.pytanie || '').trim();
+        if (!pyt) continue;
+
+        let wiersz = '', kolumna = '';
+        const match = pyt.match(/^([a-zA-Z]+|\\[a-zA-Z]+)\s+(.+)\$/);
+        
+        if (match) {
+          wiersz = match[1].trim();
+          kolumna = match[2].trim();
+        } else {
+          const parts = pyt.split(/[\s:-]+/);
+          if (parts.length >= 2) {
+            wiersz = parts[0].trim();
+            kolumna = parts.slice(1).join(' ').trim();
+          }
+        }
+
+        if (!wiersz || !kolumna) return null;
+
+        if (!wierszeSet.includes(wiersz)) wierszeSet.push(wiersz);
+        if (!kolumnySet.includes(kolumna)) kolumnySet.push(kolumna);
+
+        if (!mapa[wiersz]) mapa[wiersz] = {};
+        mapa[wiersz][kolumna] = p.odpowiedz || '';
+      }
+
+      if (wierszeSet.length > 1 && kolumnySet.length > 1) {
+        return { wiersze: wierszeSet, kolumny: kolumnySet, mapa };
+      }
+      return null;
     }
 
     function rysujTabele(dane) {
@@ -97,13 +142,31 @@
       if (dane.typ === 'skan' || dane.pary) {
         tytulDiv.innerText = dane.nazwa || 'Własna Tabela';
         const pary = dane.pary || [];
+        const macierz = budujMacierz(pary);
 
-        html += '<tr><th>Pytanie / Hasło</th><th>Odpowiedź / Wartość</th></tr>';
-        pary.forEach(para => {
-          const pyt = formatujMatematyke(para.pytanie || '');
-          const odp = formatujMatematyke(para.odpowiedz || '');
-          html += `<tr><td>${pyt}</td><td>${odp}</td></tr>`;
-        });
+        if (macierz) {
+          html += '<tr><th>f(x)</th>';
+          macierz.kolumny.forEach(kol => {
+            html += `<th>${formatujMatematyke(kol)}</th>`;
+          });
+          html += '</tr>';
+
+          macierz.wiersze.forEach(wiersz => {
+            html += `<tr><th>${formatujMatematyke(wiersz)}</th>`;
+            macierz.kolumny.forEach(kol => {
+              const val = macierz.mapa[wiersz] ? macierz.mapa[wiersz][kol] : '';
+              html += `<td>${formatujMatematyke(val)}</td>`;
+            });
+            html += '</tr>';
+          });
+        } else {
+          html += '<tr><th>Pytanie / Hasło</th><th>Odpowiedź / Wartość</th></tr>';
+          pary.forEach(para => {
+            const pyt = formatujMatematyke(para.pytanie || '');
+            const odp = formatujMatematyke(para.odpowiedz || '');
+            html += `<tr><td>${pyt}</td><td>${odp}</td></tr>`;
+          });
+        }
       } else {
         tytulDiv.innerText = '';
         const { poziomMin = 1, poziomMax = 10, pionMin = 1, pionMax = 10, styl = 'szkic' } = dane;
@@ -136,7 +199,7 @@
 
       tabela.innerHTML = html;
 
-      // Wywołanie renderowania wzorów matematycznych
+      // Wywołanie renderowania MathJax po wklejeniu tabeli
       if (window.MathJax && window.MathJax.Hub) {
         window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub, tabela]);
       }
