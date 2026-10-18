@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "581343241775",
+    "project_id": "faster-mind-12a6f",
+    "storage_bucket": "faster-mind-12a6f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:581343241775:android:37402375f69d5250a348da",
+        "android_client_info": {
+          "package_name": "com.example.faster_mind"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "581343241775-9mfi8607k9470o3pf893op9u0v8sj10j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABazBBxNzYRYpORHbjdkWXbGrEafjZNjQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "581343241775-9mfi8607k9470o3pf893op9u0v8sj10j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
