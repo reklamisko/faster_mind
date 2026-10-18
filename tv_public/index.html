@@ -124,7 +124,7 @@
         if (!pyt) continue;
 
         let wiersz = '', kolumna = '';
-        const match = pyt.match(/^([a-zA-Z]+|\\[a-zA-Z]+)\s+(.+)\$/);
+        const match = pyt.match(/^([a-zA-Z]+|\\[a-zA-Z]+)\s+(.+)$/);
         
         if (match) {
           wiersz = match[1].trim();
@@ -132,7 +132,7 @@
         } else {
           const parts = pyt.split(/[\s:-]+/);
           if (parts.length >= 2) {
-            wiersz = parts.trim();
+            wiersz = parts[0].trim();
             kolumna = parts.slice(1).join(' ').trim();
           }
         }
