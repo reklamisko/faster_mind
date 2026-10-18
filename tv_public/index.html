@@ -4,18 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Odbiornik TV - Faster Mind</title>
+  
+  <!-- MathJax z obsługa AsciiMath do ułamków i wzorów -->
+  <script type="text/javascript" async
+    src="[suspicious link removed]">
+  </script>
+
   <style>
     body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #fff; }
     #ekran-pinu { text-align: center; }
     #pin-input { font-size: 40px; text-align: center; letter-spacing: 10px; width: 200px; padding: 10px; border: 2px solid #ccc; border-radius: 10px; }
     button { font-size: 24px; padding: 15px 40px; margin-top: 20px; background-color: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; }
     #blad { color: red; margin-top: 20px; font-size: 18px; }
-    #tabela-pojemnik { display: none; width: 100%; height: 100vh; overflow: auto; padding: 20px; box-sizing: border-box; }
+    #tabela-pojemnik { display: none; width: 100%; height: 100vh; overflow: auto; padding: 20px; box-sizing: border-box; text-align: center; }
     table { border-collapse: collapse; margin: auto; }
-    
-    /* Zoptymalizowany wygląd (z poprzedniego kroku) */
-    td, th { padding: 0.4px 3px; text-align: center; border: 1px solid black; font-size: 16px; font-weight: bold; }
-    th { background-color: #e0e0e0; font-size: 18px; }
+    td, th { padding: 4px 10px; text-align: center; border: 1px solid black; font-size: 18px; font-weight: bold; }
+    th { background-color: #e0e0e0; font-size: 20px; }
+    .tytul-tabeli { font-size: 28px; font-weight: bold; margin-bottom: 20px; color: #333; }
   </style>
 </head>
 <body>
@@ -29,12 +34,12 @@
   </div>
 
   <div id="tabela-pojemnik">
+    <div id="tytul-tabeli" class="tytul-tabeli"></div>
     <table id="tabliczka"></table>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    // Dodano import funkcji deleteDoc
     import { getFirestore, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -65,7 +70,6 @@
           document.getElementById('ekran-pinu').style.display = 'none';
           document.getElementById('tabela-pojemnik').style.display = 'block';
           
-          // KASOWANIE REKORDU: Zwalniamy PIN natychmiast po narysowaniu tabeli
           await deleteDoc(docRef);
         } else {
           bladDiv.innerText = "Nie znaleziono tabliczki dla tego PIN-u!";
@@ -75,36 +79,67 @@
       }
     };
 
+    function formatujMatematyke(tekst) {
+      if (!tekst) return '';
+      tekst = String(tekst).trim();
+      if (tekst.includes('`')) return tekst;
+      if (tekst.includes('/') || tekst.includes('^') || tekst.includes('sqrt')) {
+        return '`' + tekst + '`';
+      }
+      return tekst;
+    }
+
     function rysujTabele(dane) {
-      const { poziomMin = 1, poziomMax = 10, pionMin = 1, pionMax = 10, styl = 'szkic' } = dane;
       const tabela = document.getElementById('tabliczka');
+      const tytulDiv = document.getElementById('tytul-tabeli');
       let html = '';
 
-      for (let wiersz = 0; wiersz <= pionMax - pionMin + 1; wiersz++) {
-        html += '<tr>';
-        for (let kolumna = 0; kolumna <= poziomMax - poziomMin + 1; kolumna++) {
-          let y = wiersz === 0 ? 0 : pionMin + wiersz - 1;
-          let x = kolumna === 0 ? 0 : poziomMin + kolumna - 1;
-          let tekst = (wiersz === 0 && kolumna === 0) ? '×' : (wiersz === 0 ? x : (kolumna === 0 ? y : x * y));
-          let bg = '#ffffff';
+      if (dane.typ === 'skan' || dane.pary) {
+        tytulDiv.innerText = dane.nazwa || 'Własna Tabela';
+        const pary = dane.pary || [];
 
-          if (wiersz === 0 || kolumna === 0) {
-            bg = '#e0e0e0';
-          } else if (styl === 'mono') {
-            if (x % 2 === 0 && y % 2 === 0) bg = '#90a4ae';
-            else if (x % 2 === 0 || y % 2 === 0) bg = '#cfd8dc';
-          } else if (styl === 'tecza') {
-            let maxVal = Math.max(x, y);
-            const kolory = ["#ffcdd2", "#e1bee7", "#c5cae9", "#bbdefb", "#b2ebf2", "#b2dfdb", "#c8e6c9", "#f0f4c3", "#fff9c4", "#ffe0b2"];
-            bg = kolory[maxVal % 10];
+        html += '<tr><th>Pytanie / Hasło</th><th>Odpowiedź / Wartość</th></tr>';
+        pary.forEach(para => {
+          const pyt = formatujMatematyke(para.pytanie || '');
+          const odp = formatujMatematyke(para.odpowiedz || '');
+          html += `<tr><td>${pyt}</td><td>${odp}</td></tr>`;
+        });
+      } else {
+        tytulDiv.innerText = '';
+        const { poziomMin = 1, poziomMax = 10, pionMin = 1, pionMax = 10, styl = 'szkic' } = dane;
+        const kolory = ["#ffcdd2", "#e1bee7", "#c5cae9", "#bbdefb", "#b2ebf2", "#b2dfdb", "#c8e6c9", "#f0f4c3", "#fff9c4", "#ffe0b2"];
+
+        for (let wiersz = 0; wiersz <= pionMax - pionMin + 1; wiersz++) {
+          html += '<tr>';
+          for (let kolumna = 0; kolumna <= poziomMax - poziomMin + 1; kolumna++) {
+            let y = wiersz === 0 ? 0 : pionMin + wiersz - 1;
+            let x = kolumna === 0 ? 0 : poziomMin + kolumna - 1;
+            let tekst = (wiersz === 0 && kolumna === 0) ? '×' : (wiersz === 0 ? x : (kolumna === 0 ? y : x * y));
+            let bg = '#ffffff';
+
+            if (wiersz === 0 || kolumna === 0) {
+              bg = '#e0e0e0';
+            } else if (styl === 'mono') {
+              if (x % 2 === 0 && y % 2 === 0) bg = '#90a4ae';
+              else if (x % 2 === 0 || y % 2 === 0) bg = '#cfd8dc';
+            } else if (styl === 'tecza') {
+              let maxVal = Math.max(x, y);
+              bg = kolory[maxVal % 10];
+            }
+
+            let tag = (wiersz === 0 || kolumna === 0) ? 'th' : 'td';
+            html += `<${tag} style="background-color: ${bg}">${tekst}</${tag}>`;
           }
-
-          let tag = (wiersz === 0 || kolumna === 0) ? 'th' : 'td';
-          html += `<${tag} style="background-color: ${bg}">${tekst}</${tag}>`;
+          html += '</tr>';
         }
-        html += '</tr>';
       }
+
       tabela.innerHTML = html;
+
+      // Wywołanie renderowania wzorów matematycznych
+      if (window.MathJax && window.MathJax.Hub) {
+        window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub, tabela]);
+      }
     }
   </script>
 </body>
