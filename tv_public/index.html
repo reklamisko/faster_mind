@@ -138,7 +138,7 @@
 
         if (pyt.includes('|')) {
           const parts = pyt.split('|');
-          wiersz = parts.trim();
+          wiersz = parts[0].trim();
           kolumna = parts.slice(1).join('|').trim();
         } else {
           const match = pyt.match(/^([a-zA-Z]+|\\[a-zA-Z]+)\s+(.+)\$/);
@@ -148,7 +148,7 @@
           } else {
             const parts = pyt.split(/[\s:-]+/);
             if (parts.length >= 2) {
-              wiersz = parts.trim();
+              wiersz = parts[0].trim();
               kolumna = parts.slice(1).join(' ').trim();
             }
           }
