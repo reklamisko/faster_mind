@@ -30,7 +30,7 @@ class _TwojeTabliczkiPageState extends State<TwojeTabliczkiPage> {
         'typ': 'skan',
         'nazwa': _wybranaTabelaDane!['nazwa'] ?? 'Tabela',
         'pary': _wybranaTabelaDane!['pary'] ?? [],
-        'utworzono': DateTime.now().millisecondsSinceEpoch,
+        'utworzono': FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;
@@ -42,7 +42,7 @@ class _TwojeTabliczkiPageState extends State<TwojeTabliczkiPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Otwórz na telewizorze stronę:'),
+              const Text('Otwórz przeglądarkę na telewizorze i wejdź na stronę:'),
               const SizedBox(height: 8),
               const SelectableText(
                 'faster-mind-12a6f.web.app',
@@ -66,8 +66,65 @@ class _TwojeTabliczkiPageState extends State<TwojeTabliczkiPage> {
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Błąd wysyłania: $e')),
+      );
+    }
+  }
+
+  Future<void> _usunTabliczke() async {
+    if (_wybranaTabelaId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Zaznacz tabelę z listy, którą chcesz usunąć!')),
+      );
+      return;
+    }
+
+    bool? potwierdzenie = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Potwierdzenie usunięcia'),
+        content: Text('Czy na pewno chcesz usunąć tabelę "${_wybranaTabelaDane?['nazwa'] ?? ''}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Anuluj'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Usuń', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (potwierdzenie != true) return;
+
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('wlasne_tabliczki')
+          .doc(userId)
+          .collection('tabele')
+          .doc(_wybranaTabelaId)
+          .delete();
+
+      setState(() {
+        _wybranaTabelaId = null;
+        _wybranaTabelaDane = null;
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tabela została usunięta z bazy.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Błąd podczas usuwania: $e')),
       );
     }
   }
@@ -86,7 +143,7 @@ class _TwojeTabliczkiPageState extends State<TwojeTabliczkiPage> {
           const Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
-              'Zaznacz tabelę, aby wysłać ją na TV:',
+              'Zaznacz tabelę, aby wysłać na TV lub usunąć:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -103,6 +160,7 @@ class _TwojeTabliczkiPageState extends State<TwojeTabliczkiPage> {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       }
+
                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                         return const Center(
                           child: Text('Brak zapisanych tabel. Skanuj pierwszą tabelę poniżej!'),
@@ -137,22 +195,35 @@ class _TwojeTabliczkiPageState extends State<TwojeTabliczkiPage> {
                   ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+            padding: const EdgeInsets.only(left: 12.0, right: 12.0, top: 10.0, bottom: 35.0),
             child: Row(
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: _wyslijNaTv,
-                    icon: const Icon(Icons.tv),
-                    label: const Text('Wyślij na TV'),
+                    icon: const Icon(Icons.tv, size: 20),
+                    label: const Text('Wyślij na TV', style: TextStyle(fontSize: 13)),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _usunTabliczke,
+                    icon: const Icon(Icons.delete, size: 20),
+                    label: const Text('Usuń', style: TextStyle(fontSize: 13)),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
@@ -161,10 +232,10 @@ class _TwojeTabliczkiPageState extends State<TwojeTabliczkiPage> {
                         MaterialPageRoute(builder: (context) => const SkanerPage()),
                       );
                     },
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Skanuj nową'),
+                    icon: const Icon(Icons.camera_alt, size: 20),
+                    label: const Text('Skanuj nową', style: TextStyle(fontSize: 13)),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       backgroundColor: Colors.blueGrey,
                       foregroundColor: Colors.white,
                     ),

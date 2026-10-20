@@ -1,0 +1,7 @@
+if (docSnap.exists()) {
+  const dane = docSnap.data();
+  const teraz = Date.now();
+  const czasUtworzenia = dane.utworzono || teraz;
+
+
+}

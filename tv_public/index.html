@@ -77,9 +77,19 @@
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          const dane = docSnap['data']();
-          const teraz = Date['now']();
-          const czasUtworzenia = dane.utworzono || teraz;
+          const dane = docSnap.data();
+          const teraz = Date.now();
+          
+          let czasUtworzenia = teraz;
+          if (dane.utworzono) {
+            if (typeof dane.utworzono.toMillis === 'function') {
+              czasUtworzenia = dane.utworzono.toMillis();
+            } else if (typeof dane.utworzono.seconds === 'number') {
+              czasUtworzenia = dane.utworzono.seconds * 1000;
+            } else if (typeof dane.utworzono === 'number') {
+              czasUtworzenia = dane.utworzono < 100000000000 ? dane.utworzono * 1000 : dane.utworzono;
+            }
+          }
 
           if (teraz - czasUtworzenia > 5 * 60 * 1000) {
             await deleteDoc(docRef);
@@ -128,7 +138,7 @@
 
         if (pyt.includes('|')) {
           const parts = pyt.split('|');
-          wiersz = parts[0].trim();
+          wiersz = parts.trim();
           kolumna = parts.slice(1).join('|').trim();
         } else {
           const match = pyt.match(/^([a-zA-Z]+|\\[a-zA-Z]+)\s+(.+)\$/);
@@ -138,7 +148,7 @@
           } else {
             const parts = pyt.split(/[\s:-]+/);
             if (parts.length >= 2) {
-              wiersz = parts[0].trim();
+              wiersz = parts.trim();
               kolumna = parts.slice(1).join(' ').trim();
             }
           }
