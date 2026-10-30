@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FasterMind - Kolektor Głosu 🎤</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      background: #121212;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      text-align: center;
+    }
+    .card {
+      background: #1e1e2f;
+      border-radius: 24px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    h1 { font-size: 1.5rem; color: #a29bfe; margin-bottom: 10px; }
+    .sub { font-size: 0.9rem; color: #b2bec3; margin-bottom: 25px; }
+    .liczba-box {
+      background: #0f0f1b;
+      border: 3px solid #6c5ce7;
+      border-radius: 20px;
+      padding: 40px 20px;
+      margin: 20px 0;
+    }
+    .liczba {
+      font-size: 5rem;
+      font-weight: 800;
+      color: #00ffe0;
+      letter-spacing: 2px;
+    }
+    .status {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 15px 0;
+      min-height: 30px;
+      color: #fd79a8;
+    }
+    .btn {
+      background: #6c5ce7;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 12px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-secondary { background: #2d3436; color: #dfe6e9; }
+    .btn-danger { background: #d63031; }
+    .progress-bar {
+      height: 8px;
+      background: #2d3436;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #00b894;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .flex-gap { display: flex; gap: 10px; }
+  </style>
+
+  <!-- Firebase SDK (Modular CDN) -->
+  <script type="module">
+    import { initializeApp } from "[suspicious link removed]";
+    import { getStorage, ref, uploadBytes } from "[suspicious link removed]";
+
+    // TODO: Wklej tutaj swój oficjalny firebaseConfig z konsoli Firebase!
+    const firebaseConfig = {
+      apiKey: "TWOJE_API_KEY",
+      authDomain: "[suspicious link removed]",
+      projectId: "faster-mind",
+      storageBucket: "[suspicious link removed]",
+      messagingSenderId: "TWOJ_SENDER_ID",
+      appId: "TWOJE_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    // BAZA LICZB DO NAGRANIA (Blok 1 + Blok 2)
+    const listaLiczb = [
+      "0","1","2","3","4","5","6","7","8","9","10",
+      "12","14","15","16","18","20","21","24","25","27",
+      "28","30","32","35","36","40","42","45","48","49",
+      "50","54","56","60","63","64","70","72","80","81","90","100",
+      "to","stówka"
+    ];
+
+    let aktualnyIndex = 0;
+    let sessionId = "sesja_" + Date.now();
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+
+    window.startAplikacji = async function() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          audioChunks = [];
+          await wyslijDoFirebase(audioBlob);
+        };
+
+        document.getElementById("start-screen").style.display = "none";
+        document.getElementById("recording-screen").style.display = "block";
+        pokazLiczbe();
+      } catch (err) {
+        alert("Brak dostępu do mikrofonu! Udziel zezwolenia w przeglądarce.");
+      }
+    };
+
+    function pokazLiczbe() {
+      if (aktualnyIndex >= listaLiczb.length) {
+        document.getElementById("recording-screen").style.display = "none";
+        document.getElementById("end-screen").style.display = "block";
+        return;
+      }
+
+      const postep = ((aktualnyIndex) / listaLiczb.length) * 100;
+      document.getElementById("progress-fill").style.width = postep + "%";
+      document.getElementById("licznik").innerText = `${aktualnyIndex + 1} z ${listaLiczb.length}`;
+      document.getElementById("aktualna-liczba").innerText = listaLiczb[aktualnyIndex];
+      document.getElementById("status-text").innerText = "Kliknij nagrywanie i przeczytaj liczbę";
+    }
+
+    window.rozpocznijNagrywanie = function() {
+      if (isRecording) return;
+      audioChunks = [];
+      mediaRecorder.start();
+      isRecording = true;
+      document.getElementById("status-text").innerText = "🔴 SŁUCHAM... Przeczytaj liczbę!";
+      document.getElementById("btn-rec").style.display = "none";
+      document.getElementById("btn-stop").style.display = "block";
+    };
+
+    window.ZatrzymajINastępna = function() {
+      if (!isRecording) return;
+      mediaRecorder.stop();
+      isRecording = false;
+      document.getElementById("status-text").innerText = "⏳ Wysyłanie...";
+      document.getElementById("btn-rec").style.display = "block";
+      document.getElementById("btn-stop").style.display = "none";
+    };
+
+    async function wyslijDoFirebase(blob) {
+      const etykieta = listaLiczb[aktualnyIndex];
+      const fileName = `nagrania/${sessionId}/${etykieta}_${Date.now()}.webm`;
+      const storageRef = ref(storage, fileName);
+
+      try {
+        await uploadBytes(storageRef, blob);
+        aktualnyIndex++;
+        pokazLiczbe();
+      } catch (e) {
+        console.error("Błąd wysyłki:", e);
+        document.getElementById("status-text").innerText = "❌ Błąd wysyłki. Spróbuj ponownie.";
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div class="card" id="start-screen">
+    <h1>FasterMind Collector 🎤</h1>
+    <p class="sub">Narzędzie do zbierania próbek głosu dla dzieci</p>
+    <button class="btn" onclick="startAplikacji()">ROZPOCZNIJ NAGRYWANIE</button>
+  </div>
+
+  <div class="card" id="recording-screen" style="display: none;">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <p class="sub" id="licznik">1 z 45</p>
+
+    <div class="liczba-box">
+      <div class="liczba" id="aktualna-liczba">56</div>
+    </div>
+
+    <div class="status" id="status-text">Gotowy</div>
+
+    <button class="btn" id="btn-rec" onclick="rozpocznijNagrywanie()">🔴 NAGRAJ LICZBĘ</button>
+    <button class="btn btn-danger" id="btn-stop" style="display: none;" onclick="ZatrzymajINastępna()">⏹ STOP I DALEJ ➔</button>
+  </div>
+
+  <div class="card" id="end-screen" style="display: none;">
+    <h1>Dziękujemy! 🎉</h1>
+    <p class="sub">Wszystkie liczby zostały pomyślnie nagrane i zapisane w Firebase.</p>
+  </div>
+
+</body>
+</html>
