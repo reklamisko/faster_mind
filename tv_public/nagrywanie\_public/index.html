@@ -82,7 +82,7 @@
   <!-- Firebase SDK Modular CDN -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getStorage, ref, uploadBytes } from "[suspicious link removed]";
+    import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
     // Oficjalne klucze projektu ze źródeł FasterMind
     const firebaseConfig = {
@@ -91,7 +91,8 @@
       projectId: "faster-mind-12a6f",
       storageBucket: "faster-mind-12a6f.firebasestorage.app",
       messagingSenderId: "581343241775",
-      appId: "1:581343241775:web:463ab86511994bf7a348da"
+      appId: "1:581343241775:web:463ab86511994bf7a348da",
+      measurementId: "G-P9H90175RD"
     };
 
     const app = initializeApp(firebaseConfig);
